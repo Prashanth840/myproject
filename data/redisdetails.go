@@ -1,13 +1,12 @@
-package global
+package data
 
 import (
 	"fmt"
-	"myproject/data"
 	"time"
 )
 
 func RedisGet(key string) string {
-	val, err := data.RedisClient.Get(key).Result()
+	val, err := RedisClient.Get(key).Result()
 	if err != nil {
 		return ""
 	}
@@ -16,7 +15,7 @@ func RedisGet(key string) string {
 
 func RedisSetExp(key string, value string, expiration time.Duration) bool {
 
-	_, err := data.RedisClient.Set(key, value, expiration).Result()
+	_, err := RedisClient.Set(key, value, expiration).Result()
 	if err != nil {
 		fmt.Println(err.Error())
 	}

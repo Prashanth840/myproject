@@ -1,19 +1,12 @@
 package main
 
 import (
-	"myproject/controller"
 	"myproject/data"
-	"net/http"
-
-	"github.com/gorilla/mux"
+	"myproject/routes"
 )
 
 func main() {
 	data.InitRedisDB()
-	r := mux.NewRouter()
-	r.HandleFunc("/upload", controller.HandleFileUpload).Methods("POST")
 
-	http.Handle("/", r)
-
-	http.ListenAndServe(":8080", nil)
+	routes.StartRoute()
 }
