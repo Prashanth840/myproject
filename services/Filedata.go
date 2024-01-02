@@ -27,6 +27,13 @@ func Filehandler(Filename string, File io.Reader) (string, string) {
 
 		return "", "Error copying the file"
 	}
+
+	fileInfo, err := os.Stat(Filename)
+	if err != nil {
+
+		return "", "Error getting file information"
+	}
+
 	fileExtension := filepath.Ext(Filename)
 
 	if fileExtension == ".csv" {
@@ -64,19 +71,12 @@ func Filehandler(Filename string, File io.Reader) (string, string) {
 				return "Uploaded file is empty", ""
 			}
 		}
+	} else {
+		if fileInfo.Size() == 0 {
+
+			return "File is empty", ""
+		}
 	}
-
-	fileInfo, err := os.Stat(Filename)
-	if err != nil {
-
-		return "", "Error getting file information"
-	}
-
-	if fileInfo.Size() == 0 {
-
-		return "File is empty", ""
-	}
-
 	size := strconv.Itoa(int(fileInfo.Size()))
 	Filename = strings.ReplaceAll(Filename, " ", "")
 	data.RedisSetExp(Filename, size, time.Duration(time.Second*120))
