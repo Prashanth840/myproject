@@ -14,7 +14,19 @@ import (
 	"github.com/tealeg/xlsx"
 )
 
-func Filehandler(Filename string, File io.Reader) (string, string) {
+type FileService interface {
+	FileHandler(Filename string, File io.Reader) (string, string)
+}
+
+type fileService struct {
+	fileDb data.FileRepo
+}
+
+func NewFileService(fileDb data.FileRepo) *fileService {
+	return &fileService{fileDb: fileDb}
+}
+
+func (s *fileService) FileHandler(Filename string, File io.Reader) (string, string) {
 
 	dst, err := os.Create(Filename)
 	if err != nil {
@@ -79,8 +91,8 @@ func Filehandler(Filename string, File io.Reader) (string, string) {
 	}
 	size := strconv.Itoa(int(fileInfo.Size()))
 	Filename = strings.ReplaceAll(Filename, " ", "")
-	data.RedisSetExp(Filename, size, time.Duration(time.Second*120))
-	result := data.RedisGet(Filename)
+	s.fileDb.RedisSetExp(Filename, size, time.Duration(time.Second*120))
+	result := s.fileDb.RedisGet(Filename)
 	fmt.Println(result)
 	return "Uploaded Successfully", ""
 }

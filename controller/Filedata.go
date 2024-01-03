@@ -6,7 +6,18 @@ import (
 	"net/http"
 )
 
-func HandleFileUpload(w http.ResponseWriter, r *http.Request) {
+type FileHandler interface {
+	FileUpload(w http.ResponseWriter, r *http.Request)
+}
+type fileHandler struct {
+	fileService services.FileService
+}
+
+func NewFileHandler(fileService services.FileService) *fileHandler {
+	return &fileHandler{fileService: fileService}
+}
+
+func (h *fileHandler) FileUpload(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -21,7 +32,7 @@ func HandleFileUpload(w http.ResponseWriter, r *http.Request) {
 
 	defer file.Close()
 
-	res, sts := services.Filehandler(handler.Filename, file)
+	res, sts := h.fileService.FileHandler(handler.Filename, file)
 	if sts != "" {
 		http.Error(w, sts, http.StatusBadRequest)
 		return
