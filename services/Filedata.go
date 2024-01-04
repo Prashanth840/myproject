@@ -6,6 +6,7 @@ import (
 	"io"
 	"mime/multipart"
 	"myproject/data"
+	"myproject/resources"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -16,7 +17,7 @@ import (
 )
 
 type FileService interface {
-	FileHandler(Filename string, File multipart.File) (string, string)
+	FileHandler(Filename string, File multipart.File) (resources.Output, string, string)
 }
 
 type fileService struct {
@@ -27,24 +28,24 @@ func NewFileService(fileDb data.FileRepo) *fileService {
 	return &fileService{fileDb: fileDb}
 }
 
-func (s *fileService) FileHandler(Filename string, File multipart.File) (string, string) {
-
+func (s *fileService) FileHandler(Filename string, File multipart.File) (resources.Output, string, string) {
+	var res resources.Output
 	dst, err := os.Create(Filename)
 	if err != nil {
 
-		return "", "Error creating the file"
+		return res, "", "Error creating the file"
 	}
 	defer dst.Close()
 
 	if _, err := io.Copy(dst, File); err != nil {
 
-		return "", "Error copying the file"
+		return res, "", "Error copying the file"
 	}
 
 	fileInfo, err := os.Stat(Filename)
 	if err != nil {
 
-		return "", "Error getting file information"
+		return res, "", "Error getting file information"
 	}
 
 	fileExtension := filepath.Ext(Filename)
@@ -54,7 +55,7 @@ func (s *fileService) FileHandler(Filename string, File multipart.File) (string,
 		file, err := os.Open(Filename)
 		if err != nil {
 
-			return "", "Error opening CSV file"
+			return res, "", "Error opening CSV file"
 		}
 		defer file.Close()
 
@@ -63,17 +64,17 @@ func (s *fileService) FileHandler(Filename string, File multipart.File) (string,
 		records, err := reader.ReadAll()
 		if err != nil {
 
-			return "", "Error reading CSV records"
+			return res, "", "Error reading CSV records"
 		}
 		if len(records) == 0 {
 
-			return "Uploaded file is empty", ""
+			return res, "Uploaded file is empty", ""
 		}
 	} else if fileExtension == ".xlsx" {
 		xlFile, err := xlsx.OpenFile(Filename)
 		if err != nil {
 
-			return "", "Error opening XLSX file"
+			return res, "", "Error opening XLSX file"
 		}
 
 		for _, sheet := range xlFile.Sheets {
@@ -81,19 +82,20 @@ func (s *fileService) FileHandler(Filename string, File multipart.File) (string,
 
 			if len(sheet.Rows) == 0 {
 
-				return "Uploaded file is empty", ""
+				return res, "Uploaded file is empty", ""
 			}
 		}
 	} else {
 		if fileInfo.Size() == 0 {
 
-			return "File is empty", ""
+			return res, "File is empty", ""
 		}
 	}
 	size := strconv.Itoa(int(fileInfo.Size()))
 	Filename = strings.ReplaceAll(Filename, " ", "")
 	s.fileDb.RedisSetExp(Filename, size, time.Duration(time.Second*120))
 	result := s.fileDb.RedisGet(Filename)
-	fmt.Println(result)
-	return "Uploaded Successfully", ""
+	res.Filename = Filename
+	res.Filesize = result
+	return res, "", ""
 }

@@ -32,12 +32,14 @@ func (h *fileHandler) FileUpload(w http.ResponseWriter, r *http.Request) {
 
 	defer file.Close()
 
-	res, sts := h.fileService.FileHandler(handler.Filename, file)
+	res, msg, sts := h.fileService.FileHandler(handler.Filename, file)
 	if sts != "" {
 		http.Error(w, sts, http.StatusBadRequest)
 		return
+	} else if msg != "" {
+		fmt.Fprintf(w, msg)
 	}
 
-	fmt.Fprintf(w, res)
+	fmt.Fprintf(w, res.Filename+":"+res.Filesize)
 
 }
