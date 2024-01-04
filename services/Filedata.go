@@ -2,7 +2,6 @@ package services
 
 import (
 	"encoding/csv"
-	"fmt"
 	"io"
 	"mime/multipart"
 	"myproject/data"
@@ -78,7 +77,6 @@ func (s *fileService) FileHandler(Filename string, File multipart.File) (resourc
 		}
 
 		for _, sheet := range xlFile.Sheets {
-			fmt.Printf("Sheet Name: %s\n", sheet.Name)
 
 			if len(sheet.Rows) == 0 {
 
