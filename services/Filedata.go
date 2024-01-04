@@ -6,7 +6,7 @@ import (
 	"io"
 	"mime/multipart"
 	"myproject/data"
-	"myproject/resources"
+	resources "myproject/models"
 	"os"
 	"path/filepath"
 	"strconv"
