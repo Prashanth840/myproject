@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"myproject/data"
 	"os"
 	"path/filepath"
@@ -15,7 +16,7 @@ import (
 )
 
 type FileService interface {
-	FileHandler(Filename string, File io.Reader) (string, string)
+	FileHandler(Filename string, File multipart.File) (string, string)
 }
 
 type fileService struct {
@@ -26,7 +27,7 @@ func NewFileService(fileDb data.FileRepo) *fileService {
 	return &fileService{fileDb: fileDb}
 }
 
-func (s *fileService) FileHandler(Filename string, File io.Reader) (string, string) {
+func (s *fileService) FileHandler(Filename string, File multipart.File) (string, string) {
 
 	dst, err := os.Create(Filename)
 	if err != nil {
